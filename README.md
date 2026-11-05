@@ -16,7 +16,11 @@ Dự án được chia thành từng phần rõ ràng để tiện tra cứu và
   * Lệnh đánh thức NMT Start Node.
   * Chuỗi kích hoạt cấp nguồn, khóa trục và mở phanh cơ.
   * Trình tự khởi động chuẩn trong hàm main().
-* Part 3: Hướng dẫn điều khiển Góc quay (Position Mode) *(Đang cập nhật)*
+* [Part 3: Điều khiển Góc quay và Vị trí (Position Mode)](docs/part3_position_control.md)
+  * Công thức quy đổi góc độ (Degrees) sang xung Encoder (inc).
+  * Quy đổi vận tốc RPM sang đơn vị nội bộ DEC.
+  * Cơ chế kích hoạt chuyển động góc (Bit 4: New Set-point Trigger).
+  * Hàm trọn gói Kinco_MoveToAngle().
 * Part 4: Bộ giải mã phản hồi (Feedback) trong ngắt CAN *(Đang cập nhật)*
 * Part 5: Hướng dẫn cấu hình STM32CubeMX và Sơ đồ đấu dây *(Đang cập nhật)*
 
@@ -26,7 +30,7 @@ Dự án được chia thành từng phần rõ ràng để tiện tra cứu và
 
 - [x] Part 1: Khởi tạo từ điển thanh ghi và cấu trúc dữ liệu (kinco_ismk_def.h)
 - [x] Part 2: Khởi tạo mạng NMT và Chuỗi kích hoạt máy trạng thái CiA 402 (kinco_ismk_core.c, kinco_ismk.h)
-- [ ] Part 3: Hàm điều khiển Góc quay / Vị trí (Position Mode)
+- [x] Part 3: Hàm điều khiển Góc quay / Vị trí (kinco_ismk_pos.c, kinco_ismk.h)
 - [ ] Part 4: Bóc tách phản hồi góc, tốc độ thực tế từ ngắt CAN
 - [ ] Part 5: Code mẫu hoàn chỉnh trên STM32CubeIDE
 
