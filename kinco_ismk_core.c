@@ -1,6 +1,6 @@
 /**
  * @file kinco_ismk_core.c
- * @brief Thực thi logic khởi tạo, NMT và máy trạng thái CiA 402 cho Kinco iSMK
+ * @brief Thực thi logic khởi tạo, NMT và máy trạng thái CiA 402 cho 1 Motor Kinco iSMK (Node ID = 1)
  */
 
 #include "kinco_ismk.h"
@@ -23,8 +23,8 @@ static bool Kinco_SDO_Write(Kinco_Motor_t *motor, uint8_t cmd, uint16_t index, u
     payload[6] = (uint8_t)((val >> 16) & 0xFF);
     payload[7] = (uint8_t)((val >> 24) & 0xFF);
 
-    uint32_t sdo_rx_id = CANOPEN_COB_SDO_RX_BASE + motor->node_id; /* 0x600 + ID */
-    return motor->can_send(sdo_rx_id, payload, 8);
+    /* Gửi thẳng đến hòm thư SDO Rx của Motor 1 (CAN ID: 0x601) */
+    return motor->can_send(CANOPEN_COB_SDO_RX, payload, 8);
 }
 
 static bool Kinco_SDO_Write8(Kinco_Motor_t *motor, uint16_t index, uint8_t subindex, uint8_t val) {
@@ -39,12 +39,11 @@ static bool Kinco_SDO_Write16(Kinco_Motor_t *motor, uint16_t index, uint8_t subi
 /* 1. KHỞI TẠO ĐỐI TƯỢNG MOTOR (AUTO CHỌN CHẾ ĐỘ GÓC / VỊ TRÍ)           */
 /* ==================================================================== */
 
-void Kinco_Init(Kinco_Motor_t *motor, uint8_t node_id, uint32_t encoder_resolution,
+void Kinco_Init(Kinco_Motor_t *motor, uint32_t encoder_resolution,
                 bool (*can_send_callback)(uint32_t can_id, const uint8_t *data, uint8_t dlc)) {
     if (!motor) return;
     memset(motor, 0, sizeof(Kinco_Motor_t));
 
-    motor->node_id = node_id;
     motor->encoder_resolution = (encoder_resolution > 0) ? encoder_resolution : 65536;
     motor->can_send = can_send_callback;
     motor->state = KINCO_STATE_UNKNOWN;
@@ -59,15 +58,15 @@ void Kinco_Init(Kinco_Motor_t *motor, uint8_t node_id, uint32_t encoder_resoluti
 
 bool Kinco_NMT_Start(Kinco_Motor_t *motor) {
     if (!motor || !motor->can_send) return false;
-    /* Gửi lệnh NMT 0x01 để đánh thức motor sang trạng thái Operational */
-    uint8_t payload[2] = {0x01, motor->node_id};
+    /* Gửi lệnh NMT 0x01 để đánh thức Motor 1 sang trạng thái Operational */
+    uint8_t payload[2] = {0x01, KINCO_NODE_ID};
     return motor->can_send(CANOPEN_COB_NMT, payload, 2);
 }
 
 bool Kinco_NMT_Reset(Kinco_Motor_t *motor) {
     if (!motor || !motor->can_send) return false;
-    /* Lệnh NMT 0x81: Khởi động lại vi xử lý của motor */
-    uint8_t payload[2] = {0x81, motor->node_id};
+    /* Lệnh NMT 0x81: Khởi động lại vi xử lý của Motor 1 */
+    uint8_t payload[2] = {0x81, KINCO_NODE_ID};
     return motor->can_send(CANOPEN_COB_NMT, payload, 2);
 }
 

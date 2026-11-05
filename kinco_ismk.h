@@ -1,6 +1,6 @@
 /**
  * @file kinco_ismk.h
- * @brief Khai báo các hàm điều khiển cốt lõi cho Kinco iSMK CANopen CiA 402
+ * @brief Khai báo các hàm điều khiển cốt lõi cho Kinco iSMK CANopen (Dành cho 1 Motor - Node ID 1)
  */
 
 #ifndef KINCO_ISMK_H
@@ -12,8 +12,8 @@
 extern "C" {
 #endif
 
-/* 1. Khởi tạo đối tượng motor (Mặc định chọn chế độ Góc / Position Mode) */
-void Kinco_Init(Kinco_Motor_t *motor, uint8_t node_id, uint32_t encoder_resolution,
+/* 1. Khởi tạo đối tượng motor (Tự động chọn Mode Góc & Cố định ID 1) */
+void Kinco_Init(Kinco_Motor_t *motor, uint32_t encoder_resolution,
                 bool (*can_send_callback)(uint32_t can_id, const uint8_t *data, uint8_t dlc));
 
 /* 2. Đánh thức motor qua mạng CANopen (Lệnh NMT từ STM32 -> Motor) */

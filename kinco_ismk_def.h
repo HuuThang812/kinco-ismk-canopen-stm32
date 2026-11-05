@@ -1,6 +1,6 @@
 /**
  * @file kinco_ismk_def.h
- * @brief Định nghĩa hằng số CANopen, Thanh ghi CiA 402 và Cấu trúc dữ liệu cho Kinco iSMK
+ * @brief Định nghĩa hằng số CANopen cố định cho 1 Motor (Node ID = 1), Thanh ghi CiA 402
  */
 
 #ifndef KINCO_ISMK_DEF_H
@@ -10,18 +10,20 @@
 #include <stdbool.h>
 
 /* ==================================================================== */
-/* 1. ĐỊNH NGHĨA CANOPEN COB-ID (Địa chỉ các gói tin CAN)                */
+/* 1. ĐỊNH NGHĨA CANOPEN ID CỐ ĐỊNH CHO 1 MOTOR (NODE ID = 1)           */
 /* ==================================================================== */
-#define CANOPEN_COB_NMT             (0x000)  /* Lệnh chỉ huy toàn mạng (Start/Stop Node) */
-#define CANOPEN_COB_SYNC            (0x080)  /* Xung đồng bộ các trục */
-#define CANOPEN_COB_EMCY_BASE       (0x080)  /* + Node_ID: Gói báo lỗi khẩn cấp */
-#define CANOPEN_COB_TPDO1_BASE      (0x180)  /* + Node_ID: Motor gửi Statusword & Vị trí */
-#define CANOPEN_COB_RPDO1_BASE      (0x200)  /* + Node_ID: Master gửi Controlword xuống */
-#define CANOPEN_COB_TPDO2_BASE      (0x280)  /* + Node_ID: Motor gửi Vận tốc & Dòng điện */
-#define CANOPEN_COB_RPDO2_BASE      (0x300)  /* + Node_ID: Master gửi Vận tốc đích xuống */
-#define CANOPEN_COB_SDO_TX_BASE     (0x580)  /* + Node_ID: Phản hồi SDO từ Motor -> STM32 */
-#define CANOPEN_COB_SDO_RX_BASE     (0x600)  /* + Node_ID: Yêu cầu SDO từ STM32 -> Motor */
-#define CANOPEN_COB_HEARTBEAT_BASE  (0x700)  /* + Node_ID: Gói điểm danh sống/chết (Heartbeat) */
+#define KINCO_NODE_ID               (1)      /* ID cố định của motor */
+
+#define CANOPEN_COB_NMT             (0x000)  /* Lệnh chỉ huy mạng (Start/Stop) */
+#define CANOPEN_COB_SYNC            (0x080)  /* Xung đồng bộ mạng */
+#define CANOPEN_COB_EMCY            (0x081)  /* Motor 1 báo lỗi khẩn cấp (0x080 + 1) */
+#define CANOPEN_COB_TPDO1           (0x181)  /* Motor 1 gửi Statusword & Vị trí (0x180 + 1) */
+#define CANOPEN_COB_RPDO1           (0x201)  /* STM32 gửi Controlword xuống Motor 1 (0x200 + 1) */
+#define CANOPEN_COB_TPDO2           (0x281)  /* Motor 1 gửi Vận tốc & Dòng điện (0x280 + 1) */
+#define CANOPEN_COB_RPDO2           (0x301)  /* STM32 gửi Vận tốc đích xuống Motor 1 (0x300 + 1) */
+#define CANOPEN_COB_SDO_TX          (0x581)  /* Phản hồi SDO từ Motor 1 -> STM32 (0x580 + 1) */
+#define CANOPEN_COB_SDO_RX          (0x601)  /* Lệnh cài đặt SDO từ STM32 -> Motor 1 (0x600 + 1) */
+#define CANOPEN_COB_HEARTBEAT       (0x701)  /* Gói điểm danh sống/chết Motor 1 (0x700 + 1) */
 
 /* ==================================================================== */
 /* 2. ĐỊNH NGHĨA THANH GHI CHUẨN CIA 402 (Object Dictionary)           */
@@ -74,17 +76,16 @@ typedef enum {
 /* 5. CẤU TRÚC ĐỐI TƯỢNG MOTOR (Kinco_Motor_t)                         */
 /* ==================================================================== */
 typedef struct {
-    /* Cấu hình cơ bản */
-    uint8_t         node_id;             /* Địa chỉ ID của motor trên mạng CAN (1, 2...) */
-    uint32_t        encoder_resolution;  /* Độ phân giải encoder (iSMK mặc định là 65536) */
-    Kinco_Mode_t    target_mode;         /* Chế độ hoạt động mong muốn */
+    /* Cấu hình */
+    uint32_t        encoder_resolution;  /* Mặc định iSMK là 65536 xung/vòng */
+    Kinco_Mode_t    target_mode;         /* Mặc định là Mode 1 (Góc / Position) */
 
     /* Trạng thái vận hành */
     Kinco_State_t   state;               /* Trạng thái DS402 hiện tại */
     uint16_t        status_word;         /* Giá trị thanh ghi 0x6041 đọc về */
     bool            is_connected;        /* Đã nhận được gói tin từ motor */
     bool            fault_active;        /* Báo true nếu motor đang bị lỗi */
-    bool            target_reached;      /* Báo true khi motor đã chạy tới góc/vị trí đặt */
+    bool            target_reached;      /* Báo true khi motor đã chạy tới góc đặt */
     uint16_t        emergency_code;      /* Mã lỗi khẩn cấp EMCY từ motor */
 
     /* Dữ liệu phản hồi thực tế (Feedback) */

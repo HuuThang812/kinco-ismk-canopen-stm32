@@ -1,6 +1,6 @@
 # Part 1: Định Nghĩa CANopen & Cấu Trúc Dữ Liệu (`kinco_ismk_def.h`)
 
-Tài liệu này giải thích chi tiết ý nghĩa kỹ thuật của các hằng số, bảng địa chỉ hòm thư CANopen và khuôn mẫu cấu trúc dữ liệu trong file `kinco_ismk_def.h`.
+Tài liệu này giải thích chi tiết ý nghĩa kỹ thuật của các hằng số, bảng địa chỉ hòm thư CANopen và khuôn mẫu cấu trúc dữ liệu trong file `kinco_ismk_def.h` (dành cho hệ thống sử dụng **1 Động cơ duy nhất - Cố định Node ID = 1**).
 
 ---
 
@@ -8,26 +8,26 @@ Tài liệu này giải thích chi tiết ý nghĩa kỹ thuật của các hằ
 File `kinco_ismk_def.h` đóng vai trò là **"Cuốn từ điển & Bảng quy ước chung"** cho toàn bộ driver:
 - **Không chứa mã lệnh logic chạy motor.**
 - Định nghĩa toàn bộ hằng số địa chỉ giao tiếp theo tiêu chuẩn quốc tế **CiA 301** (CANopen) và **CiA 402** (Motion Control Profile).
-- Tạo ra khuôn mẫu đối tượng `Kinco_Motor_t` để quản lý độc lập từng con motor trong hệ thống nhiều trục (như xe AGV 2 bánh).
+- Cố định toàn bộ các địa chỉ CAN ID cho Motor 1 (`Node ID = 1`), giúp code đơn giản, ngắn gọn, không cần cộng trừ ID phức tạp.
 
 ---
 
-## 📬 2. Bảng Hòm Thư CANopen (CAN Identifier / COB-ID)
+## 📬 2. Bảng Hòm Thư CANopen Cố Định (Dành cho Motor 1)
 
-Các địa chỉ này được trích xuất trực tiếp từ **Bảng 9-12 (Trang 95)** trong tài liệu chính hãng *Kinco iSMK Integrated Servo User Manual*.
+Các địa chỉ này được trích xuất trực tiếp từ **Bảng 9-12 (Trang 95)** trong tài liệu chính hãng *Kinco iSMK Integrated Servo User Manual* ứng với `Node ID = 1`:
 
-| Tên hòm thư | Địa chỉ Base | CAN ID thực tế (Node ID = $N$) | Chiều truyền | Ý nghĩa chức năng |
-| :--- | :---: | :---: | :---: | :--- |
-| **NMT** | `0x000` | `0x000` | STM32 ➔ Motor | Lệnh chỉ huy toàn mạng: Đánh thức motor (`Start`), Dừng (`Stop`), Reset. |
-| **SYNC** | `0x080` | `0x080` | STM32 ➔ All | Xung đồng bộ phần cứng: Giúp 2 bánh xe nhận lệnh cùng 1 micro-giây. |
-| **EMCY** | `0x080` | `0x080 + N` *(VD: `0x081`)* | Motor ➔ STM32 | Báo lỗi khẩn cấp: Tự động bắn ra ngay khi kẹt trục, quá dòng, sụt áp. |
-| **TPDO1** | `0x180` | `0x180 + N` *(VD: `0x181`)* | Motor ➔ STM32 | Feedback định kỳ: Chứa **Statusword (trạng thái)** và **Vị trí thực tế**. |
-| **RPDO1** | `0x200` | `0x200 + N` *(VD: `0x201`)* | STM32 ➔ Motor | Gửi lệnh thời gian thực: Nạp trực tiếp Controlword xuống motor. |
-| **TPDO2** | `0x280` | `0x280 + N` *(VD: `0x281`)* | Motor ➔ STM32 | Feedback định kỳ: Chứa **Vận tốc thực tế (RPM)** và **Dòng điện tải**. |
-| **RPDO2** | `0x300` | `0x300 + N` *(VD: `0x301`)* | STM32 ➔ Motor | Gửi lệnh thời gian thực: Nạp trực tiếp Vận tốc đích xuống motor. |
-| **SDO Tx** | `0x580` | `0x580 + N` *(VD: `0x581`)* | Motor ➔ STM32 | Phản hồi của Motor khi STM32 gửi lệnh đọc/ghi tham số cài đặt. |
-| **SDO Rx** | `0x600` | `0x600 + N` *(VD: `0x601`)* | STM32 ➔ Motor | Kênh cài đặt cấu hình: STM32 ghi tham số vào motor qua kênh này. |
-| **HEARTBEAT**| `0x700` | `0x700 + N` *(VD: `0x701`)* | Motor ➔ STM32 | Gói tin điểm danh: Bắn ra định kỳ để báo cho STM32 biết motor còn sống. |
+| Tên hòm thư trong code | CAN ID (Hex) | Chiều truyền | Ý nghĩa chức năng |
+| :--- | :---: | :---: | :--- |
+| **`CANOPEN_COB_NMT`** | `0x000` | STM32 ➔ Motor | Lệnh chỉ huy toàn mạng: Đánh thức motor sang trạng thái sẵn sàng (`Operational`). |
+| **`CANOPEN_COB_SYNC`** | `0x080` | STM32 ➔ Motor | Xung đồng bộ mạng CANopen. |
+| **`CANOPEN_COB_EMCY`** | `0x081` | Motor ➔ STM32 | **Báo lỗi khẩn cấp:** Motor tự động bắn ra ngay khi kẹt trục, quá dòng, sụt áp. |
+| **`CANOPEN_COB_TPDO1`** | `0x181` | Motor ➔ STM32 | **Feedback định kỳ:** Motor gửi Statusword (trạng thái) và Vị trí góc thực tế. |
+| **`CANOPEN_COB_RPDO1`** | `0x201` | STM32 ➔ Motor | Gửi lệnh thời gian thực: Nạp trực tiếp Controlword xuống motor. |
+| **`CANOPEN_COB_TPDO2`** | `0x281` | Motor ➔ STM32 | **Feedback định kỳ:** Motor gửi Vận tốc thực tế (RPM) và Dòng điện tải. |
+| **`CANOPEN_COB_RPDO2`** | `0x301` | STM32 ➔ Motor | Gửi lệnh thời gian thực: Nạp trực tiếp Vận tốc đích xuống motor. |
+| **`CANOPEN_COB_SDO_TX`** | `0x581` | Motor ➔ STM32 | Phản hồi của Motor khi STM32 đọc/ghi tham số cài đặt. |
+| **`CANOPEN_COB_SDO_RX`** | `0x601` | STM32 ➔ Motor | **Kênh cài đặt tham số:** STM32 gửi lệnh góc quay, tốc độ, gia tốc vào đây. |
+| **`CANOPEN_COB_HEARTBEAT`**| `0x701` | Motor ➔ STM32 | **Điểm danh:** Motor bắn ra định kỳ để báo cho STM32 biết motor vẫn đang sống. |
 
 ---
 
@@ -52,13 +52,12 @@ Toàn bộ các thanh ghi này tuân thủ chuẩn điều khiển truyền đ�
 
 ## 🏗️ 4. Cấu Trúc Hồ Sơ Đối Tượng Motor (`Kinco_Motor_t`)
 
-Trong lập trình C nhúng, việc đóng gói mọi thông tin của motor vào một cấu trúc `struct` mang lại lợi ích rất lớn:
+Cấu trúc `struct` gọn gàng lưu trữ toàn bộ dữ liệu sống của con motor:
 
 ```c
 typedef struct {
-    uint8_t         node_id;             // Địa chỉ mạng (1, 2, 3...)
     uint32_t        encoder_resolution;  // Độ phân giải encoder (iSMK là 65536)
-    Kinco_Mode_t    target_mode;         // Chế độ đang chọn (Mode 1: Góc)
+    Kinco_Mode_t    target_mode;         // Mặc định tự động chọn Mode 1 (Góc)
 
     Kinco_State_t   state;               // Trạng thái máy trạng thái DS402
     uint16_t        status_word;         // Giá trị thanh ghi 0x6041
@@ -76,11 +75,9 @@ typedef struct {
 } Kinco_Motor_t;
 ```
 
-### 💡 Lợi ích thực tế:
-Khi làm xe tự hành AGV có 2 bánh, bạn chỉ cần khai báo:
+Khi sử dụng, fen chỉ cần khai báo:
 ```c
-Kinco_Motor_t motor_left;   // Bánh trái (Node ID = 1)
-Kinco_Motor_t motor_right;  // Bánh phải (Node ID = 2)
+Kinco_Motor_t motor;
+Kinco_Init(&motor, 65536, STM32_CAN_Send);
 ```
-- Góc quay, vận tốc và cờ lỗi của từng bánh xe sẽ được lưu độc lập trong từng biến.
-- Không bao giờ xảy ra tình trạng bánh này đè dữ liệu lên bánh kia.
+Mọi thông số góc quay, tốc độ, cờ lỗi đều được cập nhật vào biến `motor` này.
