@@ -65,6 +65,27 @@ int32_t Kinco_Deg_To_Inc(float degrees, uint32_t resolution);
 float   Kinco_Inc_To_Deg(int32_t inc, uint32_t resolution);
 int32_t Kinco_RPM_To_DEC(float rpm, uint32_t resolution);
 
+/* ==================================================================== */
+/* 6. BO GIAI MA GOI TIN PHAN HOI RX (PART 4)                          */
+/* ==================================================================== */
+
+/**
+ * @brief Xu ly va giai ma goi tin CAN nhan duoc tu Motor Kinco
+ * @param motor Con tro toi doi tuong motor
+ * @param can_id CAN ID cua goi tin nhan duoc (StdId)
+ * @param data Con tro mang du lieu nhan duoc
+ * @param dlc Do dai du lieu (so byte)
+ * @return true neu goi tin dung dinh danh va duoc giai ma thanh cong
+ */
+bool Kinco_ProcessRxMessage(Kinco_Motor_t *motor, uint32_t can_id, const uint8_t *data, uint8_t dlc);
+
+/**
+ * @brief Giai ma trang thai CiA 402 tu thanh ghi Statusword (0x6041)
+ * @param status_word Gia tri 16-bit cua Statusword
+ * @return Trang thai may Kinco_State_t tuong ung
+ */
+Kinco_State_t Kinco_DecodeState(uint16_t status_word);
+
 #ifdef __cplusplus
 }
 #endif
